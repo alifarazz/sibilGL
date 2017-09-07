@@ -14,6 +14,8 @@ float vertices[] = {
    0.5,	 -0.5
 };
 
+GLenum er;
+
 std::string ReadTextFile(const char *s)
 {
   std::ifstream mfile(s);
@@ -31,7 +33,7 @@ int main()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -62,7 +64,9 @@ int main()
   glShaderSource(vertexShader, 1, &vertexSourceStr, NULL);
   glCompileShader(vertexShader);
   GLint status; glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
-  std::cout << "shader compile status" << status << ' ' << std::endl;
+  std::cout << "shader compile status ";
+  if (status == GL_TRUE)
+    std::cout << "ok."; else std::cout << status; std::cout << std::endl;
 
   //
   std::string fragmentSoruce(ReadTextFile("./shaders/fragment.glsl"));
@@ -73,7 +77,9 @@ int main()
   glShaderSource(fragmentShader, 1, &fragmentSourceStr, NULL);
   glCompileShader(fragmentShader);
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
-  std::cout << "fragment compile status " << status << ' ' << std::endl;
+  std::cout << "fragment compile status ";
+  if (status == GL_TRUE)
+    std::cout << "ok."; else std::cout << status; std::cout << std::endl;
 
 
   GLuint shaderProgram = glCreateProgram();
@@ -82,26 +88,45 @@ int main()
 
   glBindFragDataLocation(shaderProgram, 0, "outColor");
 
+
   glLinkProgram(shaderProgram);
   glUseProgram(shaderProgram);
 
 
-  GLint pasAttrib = glGetAttribLocation(shaderProgram, "position");
-  glVertexAttribPointer(pasAttrib, 2, GL_FLOAT, GL_FLOAT, 0, 0);
-  glEnableVertexAttribArray(pasAttrib);
+  GLuint vao;
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
+
+  GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
+  glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  // er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
+  glEnableVertexAttribArray(posAttrib);
+
 
   // printf("%u\n", vertexBuffer);
   while (!glfwWindowShouldClose(window))
   {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
 
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // glClear(GL_COLOR_BUFFER_BIT); // use???
+
+    // Commenting glfwSwapBuffers will leave DE in a frozen state
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
 
 
+  glDeleteProgram(shaderProgram);
+  glDeleteShader(fragmentShader);
+  glDeleteShader(vertexShader);
+
   glDeleteBuffers(1, &vbo);
+
+  glDeleteVertexArrays(1, &vao);
 
   glfwTerminate();
   return 0;
