@@ -12,9 +12,9 @@
 
 
 float vertices[] = {
-   0.0f,  0.5f,
-  -0.5f, -0.5,
-   0.5,	 -0.5
+   0.0f,  0.5f, 1.0f, 0.0f, 0.0f, // Vertex 1, Red
+  -0.5f, -0.5, 0.0f, 1.0f, 0.0f,  // Vertex 1, Green
+   0.5,	 -0.5, 0.0f, 0.0f, 1.0f   // Vertex 1, Blue
 };
 
 GLenum er;
@@ -103,29 +103,20 @@ int main()
 
 
   GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-  glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  // er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
   glEnableVertexAttribArray(posAttrib);
+  glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
+			5 * sizeof(float), 0);
+
+  GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
+  glEnableVertexAttribArray(colAttrib);
+  glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
+			5 * sizeof(float), (void*)(2 * sizeof(float)));
 
 
-  GLint uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
-  // glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
-
-
-  auto t_start = std::chrono::high_resolution_clock::now();
   while (!glfwWindowShouldClose(window))
   {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
-
-
-    auto t_now   = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-
-    glUniform3f(uniColor,
-		(cos((time * 2.0f)) + 1.0f),
-		(sin((time * 2.0f)) + 1.0f),
-		0.1f);
 
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -150,3 +141,4 @@ int main()
   glfwTerminate();
   return 0;
 }
+  // er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
