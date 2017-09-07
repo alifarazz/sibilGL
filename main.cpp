@@ -7,6 +7,9 @@
 #include <string>
 #include <cstdio>
 
+#include <chrono>
+#include <cmath>
+
 
 float vertices[] = {
    0.0f,  0.5f,
@@ -89,6 +92,7 @@ int main()
   glBindFragDataLocation(shaderProgram, 0, "outColor");
 
 
+
   glLinkProgram(shaderProgram);
   glUseProgram(shaderProgram);
 
@@ -104,13 +108,28 @@ int main()
   glEnableVertexAttribArray(posAttrib);
 
 
-  // printf("%u\n", vertexBuffer);
+  GLint uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
+  // glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
+
+
+  auto t_start = std::chrono::high_resolution_clock::now();
   while (!glfwWindowShouldClose(window))
   {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
 
+
+    auto t_now   = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
+
+    glUniform3f(uniColor,
+		(cos((time * 2.0f)) + 1.0f),
+		(sin((time * 2.0f)) + 1.0f),
+		0.1f);
+
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
 
     // glClear(GL_COLOR_BUFFER_BIT); // use???
 
