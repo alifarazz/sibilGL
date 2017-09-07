@@ -86,6 +86,10 @@ int main()
   glUseProgram(shaderProgram);
 
 
+  GLint pasAttrib = glGetAttribLocation(shaderProgram, "position");
+  glVertexAttribPointer(pasAttrib, 2, GL_FLOAT, GL_FLOAT, 0, 0);
+  glEnableVertexAttribArray(pasAttrib);
+
   // printf("%u\n", vertexBuffer);
   while (!glfwWindowShouldClose(window))
   {
