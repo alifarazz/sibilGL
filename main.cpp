@@ -43,7 +43,7 @@ int main()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -64,7 +64,7 @@ int main()
 
 
   // Read shader from source from file
-  std::string vertexSoruce(ReadTextFile("./shaders/vertex.glsl"));
+  std::string vertexSoruce(ReadTextFile("./shaders/vertex.vert"));
   // some hack, IMPROVE
   const GLchar *vertexSourceStr = vertexSoruce.c_str();
   // create shader & assign source to shader & compile
@@ -77,7 +77,7 @@ int main()
     std::cout << "ok."; else std::cout << status; std::cout << std::endl;
 
   //
-  std::string fragmentSoruce(ReadTextFile("./shaders/fragment.glsl"));
+  std::string fragmentSoruce(ReadTextFile("./shaders/fragment.frag"));
   // IMPROVE
   const GLchar *fragmentSourceStr = fragmentSoruce.c_str();
   //
@@ -129,11 +129,11 @@ int main()
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
 
+    // added for compatibility with my AMD GPU
+    glClear(GL_COLOR_BUFFER_BIT); // use???
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-
-    // glClear(GL_COLOR_BUFFER_BIT); // use???
 
     // Commenting glfwSwapBuffers will leave DE in a frozen state
     glfwSwapBuffers(window);
