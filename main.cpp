@@ -17,7 +17,12 @@ float vertices[] = {
    0.5,	 -0.5, 0.0f, 0.0f, 1.0f   // Vertex 1, Blue
 };
 
+GLuint elements[] = {
+  0, 1, 2
+};
+
 GLenum er;
+
 
 std::string ReadTextFile(const char *s)
 {
@@ -53,10 +58,8 @@ int main()
   GLuint vbo; // Vertex Buffer Object
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER,
-	       sizeof(vertices),
-	       vertices,
-	       GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
 
   // Read shader from source from file
   std::string vertexSoruce(ReadTextFile("./shaders/vertex.glsl"));
@@ -92,12 +95,11 @@ int main()
   glBindFragDataLocation(shaderProgram, 0, "outColor");
 
 
-
   glLinkProgram(shaderProgram);
   glUseProgram(shaderProgram);
 
 
-  GLuint vao;
+  GLuint vao; // Vertex Array Object
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
@@ -113,13 +115,20 @@ int main()
 			5 * sizeof(float), (void*)(2 * sizeof(float)));
 
 
+  GLuint ebo; // Element Array Buffer Object;
+  glGenBuffers(1, &ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+
+
   while (!glfwWindowShouldClose(window))
   {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
 
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
 
     // glClear(GL_COLOR_BUFFER_BIT); // use???
