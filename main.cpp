@@ -12,13 +12,15 @@
 
 
 float vertices[] = {
-   0.0f,  0.5f, 1.0f, 0.0f, 0.0f, // Vertex 1, Red
-  -0.5f, -0.5, 0.0f, 1.0f, 0.0f,  // Vertex 1, Green
-   0.5,	 -0.5, 0.0f, 0.0f, 1.0f   // Vertex 1, Blue
+  -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+  0.5f, 0.5f,  0.0f, 1.0f, 0.0f,
+  -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+  0.5f, -0.5f, 1.0f, 1.0f, 1.0f
 };
 
 GLuint elements[] = {
-  0, 1, 2
+  0, 1, 2,
+  2, 1, 3
 };
 
 GLenum er;
@@ -121,14 +123,14 @@ int main()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 
-
+  // Main Loop
   while (!glfwWindowShouldClose(window))
   {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
 
 
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 
     // glClear(GL_COLOR_BUFFER_BIT); // use???
@@ -139,15 +141,16 @@ int main()
   }
 
 
+
   glDeleteProgram(shaderProgram);
   glDeleteShader(fragmentShader);
   glDeleteShader(vertexShader);
 
   glDeleteBuffers(1, &vbo);
-
+  glDeleteBuffers(1, &ebo);
   glDeleteVertexArrays(1, &vao);
 
   glfwTerminate();
   return 0;
 }
-  // er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
+// er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
