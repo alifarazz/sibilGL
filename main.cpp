@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+// #include <glm/glm.hpp>
 #include <thread>
 
 #include <iostream>
@@ -23,8 +24,7 @@ GLuint elements[] = {
   2, 1, 3
 };
 
-GLenum er;
-
+// GLenum er;
 
 std::string ReadTextFile(const char *s)
 {
@@ -35,24 +35,48 @@ std::string ReadTextFile(const char *s)
   return content;
 }
 
+static void error_callback(int error, const char *description) {
+  fputs(description, stderr);
+}
+
+static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+  if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
+inline static void render(GLFWwindow *window) {
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_ACCUM_BUFFER_BIT);
+
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+  return ;
+}
+
 // int main(int argc, char *argv[])
 int main()
 {
-  glfwInit();
+  glfwSetErrorCallback(error_callback);
+
+  if (!glfwInit())
+    exit(EXIT_FAILURE);
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "test1", nullptr, nullptr); // windowed
   // GLFWwindow *window =
   //   glfwCreateWindow(800, 600, "test1", glfwGetPrimaryMonitor(), nullptr);
+  if (!window) {
+    std::cout << "window is null" << std::endl;
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  } glfwMakeContextCurrent(window);
 
-  glfwMakeContextCurrent(window);
-
+  glfwSetKeyCallback(window, key_callback);
 
   glewExperimental = GL_TRUE;
   glewInit();
@@ -123,23 +147,21 @@ int main()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 
+  GLuint tex;
+  glGenTextures(1, &tex);
+  glBindTexture(GL_TEXTURE_2D, tex);
+
+
   // Main Loop
-  while (!glfwWindowShouldClose(window))
-  {
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-      glfwSetWindowShouldClose(window, GL_TRUE);
+  while (!glfwWindowShouldClose(window)) {
 
-    // added for compatibility with my AMD GPU
-    glClear(GL_COLOR_BUFFER_BIT); // use???
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+    render(window);
 
     // Commenting glfwSwapBuffers will leave DE in a frozen state
     glfwSwapBuffers(window);
     glfwPollEvents();
+    //glfwWaitEvents();
   }
-
 
 
   glDeleteProgram(shaderProgram);
@@ -151,6 +173,6 @@ int main()
   glDeleteVertexArrays(1, &vao);
 
   glfwTerminate();
-  return 0;
+  return EXIT_SUCCESS;
 }
 // er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
