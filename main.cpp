@@ -58,7 +58,7 @@ inline static void render(GLFWwindow *window) {
 // int main(int argc, char *argv[])
 int main()
 {
-  glfwSetErrorCallback(error_callback);
+  // glfwSetErrorCallback(error_callback);
 
   if (!glfwInit())
     exit(EXIT_FAILURE);
@@ -103,7 +103,14 @@ int main()
   GLint status; glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
   std::cout << "shader compile status ";
   if (status == GL_TRUE)
-    std::cout << "ok."; else std::cout << status; std::cout << std::endl;
+    std::cout << "ok.";
+  else {
+    std::cout << "not ok.\n";
+    char buffer[512];
+    glGetShaderInfoLog(vertexShader, 512, nullptr, buffer);
+    fputs(buffer, stderr);
+  }
+  std::cout << std::endl;
 
   //
   std::string fragmentSoruce(ReadTextFile("./shaders/fragment.frag"));
@@ -116,7 +123,14 @@ int main()
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
   std::cout << "fragment compile status ";
   if (status == GL_TRUE)
-    std::cout << "ok."; else std::cout << status; std::cout << std::endl;
+    std::cout << "ok.";
+  else {
+    std::cout << "not ok.\n";
+    char buffer[512];
+    glGetShaderInfoLog(fragmentShader, 512, nullptr, buffer);
+    fputs(buffer, stderr);
+  }
+  std::cout << std::endl;
 
 
   GLuint shaderProgram = glCreateProgram();
@@ -135,24 +149,37 @@ int main()
   glBindVertexArray(vao);
 
 
-  GLuint tex;
-  glGenTextures(1, &tex);
-  glBindTexture(GL_TEXTURE_2D, tex);
-
+  GLuint textures[2];
+  glGenTextures(2, textures);
 
   int width, height;
-  unsigned char *image =
-    SOIL_load_image("./textures/Block4.png", &width, &height, 0, SOIL_LOAD_RGB);
+  unsigned char *image;
 
-  if (!image)
-    std::cout << "Image didn't load correctly" << std::endl;
-  else {
-    std::cout << "Image did load correctly  ";
-    std::cout << "[" << width << ", " << height << "]" << std::endl;
-  }
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR,
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textures[0]);
+  image = SOIL_load_image("./textures/kitten.png", &width, &height, 0, SOIL_LOAD_RGB);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 	       GL_UNSIGNED_BYTE, image);
   SOIL_free_image_data(image);
+  glUniform1i(glGetUniformLocation(shaderProgram, "texKitten"), 0);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, textures[1]);
+  image = SOIL_load_image("./textures/dog.png", &width, &height, 0, SOIL_LOAD_RGB);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+	       GL_UNSIGNED_BYTE, image);
+  SOIL_free_image_data(image);
+  glUniform1i(glGetUniformLocation(shaderProgram, "texDog"), 1);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
   GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
@@ -176,12 +203,6 @@ int main()
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   // int er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -196,7 +217,7 @@ int main()
     //glfwWaitEvents();
   }
 
-  glDeleteTextures(1, &tex);
+  glDeleteTextures(2, textures);
 
   glDeleteProgram(shaderProgram);
   glDeleteShader(fragmentShader);
