@@ -11,13 +11,11 @@ STD=c++14
 # pthread
 # PTHREAD=-pthread
 PTHREAD=
-# Packages
-PACKAGES=glfw3 glew glm
 
-TARGET = main
+TARGET = test1
 
-CCFLAGS = $(WARN) $(PTHREAD) -std="$(STD)"  -stdlib=libstdc++  $(OPT) -pipe `pkg-config --cflags $(PACKAGES)`
-LDFLAGS = $(PTHREAD) `pkg-config --libs $(PACKAGES)` # -export-dynamic
+CCFLAGS = $(WARN) $(PTHREAD) -std="$(STD)"  -stdlib=libstdc++  $(OPT) -pipe `pkg-config --cflags glfw3 glew glm` -I/usr/include/SOIL
+LDFLAGS = $(PTHREAD) `pkg-config --libs glfw3 glew glm` -lSOIL # -export-dynamic
 
 SRCS = $(wildcard *.cpp)
 OBJECTS = $(patsubst %.cpp, %.o, $(SRCS))

@@ -3,6 +3,9 @@
 // #include <glm/glm.hpp>
 #include <thread>
 
+#include <SOIL/SOIL.h>
+// #include <SOIL/stb_image_aug.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -13,18 +16,18 @@
 
 
 float vertices[] = {
-  -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-  0.5f, 0.5f,  0.0f, 1.0f, 0.0f,
-  -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-  0.5f, -0.5f, 1.0f, 1.0f, 1.0f
+// Position     Color             Texcoords
+  -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // TOP    LEFT
+   0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // TOP    RIGHT
+   0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // BUTTOM RIGHT
+  -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // BUTTOM LEFT
 };
 
 GLuint elements[] = {
   0, 1, 2,
-  2, 1, 3
+  2, 3, 0
 };
 
-// GLenum er;
 
 std::string ReadTextFile(const char *s)
 {
@@ -74,7 +77,9 @@ int main()
     std::cout << "window is null" << std::endl;
     glfwTerminate();
     exit(EXIT_FAILURE);
-  } glfwMakeContextCurrent(window);
+  }
+  glfwMakeContextCurrent(window);
+
 
   glfwSetKeyCallback(window, key_callback);
 
@@ -93,7 +98,7 @@ int main()
   const GLchar *vertexSourceStr = vertexSoruce.c_str();
   // create shader & assign source to shader & compile
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexSourceStr, NULL);
+  glShaderSource(vertexShader, 1, &vertexSourceStr, nullptr);
   glCompileShader(vertexShader);
   GLint status; glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
   std::cout << "shader compile status ";
@@ -106,7 +111,7 @@ int main()
   const GLchar *fragmentSourceStr = fragmentSoruce.c_str();
   //
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentSourceStr, NULL);
+  glShaderSource(fragmentShader, 1, &fragmentSourceStr, nullptr);
   glCompileShader(fragmentShader);
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
   std::cout << "fragment compile status ";
@@ -130,15 +135,40 @@ int main()
   glBindVertexArray(vao);
 
 
+  GLuint tex;
+  glGenTextures(1, &tex);
+  glBindTexture(GL_TEXTURE_2D, tex);
+
+
+  int width, height;
+  unsigned char *image =
+    SOIL_load_image("./textures/Block4.png", &width, &height, 0, SOIL_LOAD_RGB);
+
+  if (!image)
+    std::cout << "Image didn't load correctly" << std::endl;
+  else {
+    std::cout << "Image did load correctly  ";
+    std::cout << "[" << width << ", " << height << "]" << std::endl;
+  }
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR,
+	       GL_UNSIGNED_BYTE, image);
+  SOIL_free_image_data(image);
+
+
   GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
   glEnableVertexAttribArray(posAttrib);
   glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
-			5 * sizeof(float), 0);
+			7 * sizeof(float), 0);
 
   GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
   glEnableVertexAttribArray(colAttrib);
   glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
-			5 * sizeof(float), (void*)(2 * sizeof(float)));
+			7 * sizeof(float), (void*)(2 * sizeof(float)));
+
+  GLint texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
+  glEnableVertexAttribArray(texAttrib);
+  glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
+			7 * sizeof(float), (void*)(5 * sizeof(float)));
 
 
   GLuint ebo; // Element Array Buffer Object;
@@ -147,11 +177,14 @@ int main()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
 
-  GLuint tex;
-  glGenTextures(1, &tex);
-  glBindTexture(GL_TEXTURE_2D, tex);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+  // int er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
 
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // Main Loop
   while (!glfwWindowShouldClose(window)) {
 
@@ -163,6 +196,7 @@ int main()
     //glfwWaitEvents();
   }
 
+  glDeleteTextures(1, &tex);
 
   glDeleteProgram(shaderProgram);
   glDeleteShader(fragmentShader);
@@ -175,4 +209,4 @@ int main()
   glfwTerminate();
   return EXIT_SUCCESS;
 }
-// er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
+// enum er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
