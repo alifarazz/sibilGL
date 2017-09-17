@@ -47,18 +47,11 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
     glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-inline static void render(GLFWwindow *window) {
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_ACCUM_BUFFER_BIT);
-
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-  return ;
-}
 
 // int main(int argc, char *argv[])
 int main()
 {
-  // glfwSetErrorCallback(error_callback);
+  glfwSetErrorCallback(error_callback);
 
   if (!glfwInit())
     exit(EXIT_FAILURE);
@@ -94,12 +87,11 @@ int main()
 
   // Read shader from source from file
   std::string vertexSoruce(ReadTextFile("./shaders/vertex.vert"));
-  // some hack, IMPROVE
   const GLchar *vertexSourceStr = vertexSoruce.c_str();
-  // create shader & assign source to shader & compile
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexSourceStr, nullptr);
   glCompileShader(vertexShader);
+  // shader debug
   GLint status; glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
   std::cout << "shader compile status ";
   if (status == GL_TRUE)
@@ -112,11 +104,9 @@ int main()
   }
   std::cout << std::endl;
 
-  //
+
   std::string fragmentSoruce(ReadTextFile("./shaders/fragment.frag"));
-  // IMPROVE
   const GLchar *fragmentSourceStr = fragmentSoruce.c_str();
-  //
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragmentSourceStr, nullptr);
   glCompileShader(fragmentShader);
@@ -182,6 +172,9 @@ int main()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
+  auto t_start = std::chrono::high_resolution_clock::now();
+  GLint uniTime = glGetUniformLocation(shaderProgram, "time");
+
   GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
   glEnableVertexAttribArray(posAttrib);
   glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
@@ -208,8 +201,12 @@ int main()
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // Main Loop
   while (!glfwWindowShouldClose(window)) {
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_ACCUM_BUFFER_BIT);
 
-    render(window);
+    auto t_now = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
+    glUniform1f(uniTime, std::abs(sin(time * 2)));
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     // Commenting glfwSwapBuffers will leave DE in a frozen state
     glfwSwapBuffers(window);
