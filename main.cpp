@@ -1,6 +1,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-// #include <glm/glm.hpp>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <thread>
 
 #include <SOIL/SOIL.h>
@@ -172,6 +176,22 @@ int main()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
+  GLint uniModel = glGetUniformLocation(shaderProgram, "model");
+
+  glm::mat4 view = glm::lookAt(glm::vec3(1.2f, 1.2f, 1.2f),
+			       glm::vec3(0.0f, 0.0f, 0.0f),
+			       glm::vec3(0.0f, 0.0f, 1.0f));
+  GLint uniView = glGetUniformLocation(shaderProgram, "view");
+  glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
+
+  glm::mat4 proj = glm::perspective(glm::radians(45.0f),
+				    800.0f / 600.0f,
+				    1.0f,
+				    10.0f);
+  GLint uniProj = glGetUniformLocation(shaderProgram, "proj");
+  glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
+
+
   auto t_start = std::chrono::high_resolution_clock::now();
   GLint uniTime = glGetUniformLocation(shaderProgram, "time");
 
@@ -201,11 +221,17 @@ int main()
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // Main Loop
   while (!glfwWindowShouldClose(window)) {
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_ACCUM_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
 
     auto t_now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-    glUniform1f(uniTime, std::abs(sin(time * 2)));
+    glUniform1f(uniTime, time);
+
+    glm::mat4 model;
+    model = glm::rotate(model, time * glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     // Commenting glfwSwapBuffers will leave DE in a frozen state

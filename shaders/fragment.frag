@@ -13,6 +13,6 @@ void main()
 {
   vec4 colKitten = texture(texKitten, Texcoord);
   vec4 colDog = texture(texDog, Texcoord);
-  outColor = mix(colDog, colKitten, time);
+  outColor =  mix(colDog, colKitten, abs(sin(time)));
   // outColor = vec4(1 - Color.r, 1 - Color.g, 1 - Color.b , 1.0);
 }
