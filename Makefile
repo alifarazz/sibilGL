@@ -12,10 +12,10 @@ STD=c++14
 # PTHREAD=-pthread
 PTHREAD=
 
-TARGET = test1
+TARGET = sibil
 
-CCFLAGS = $(WARN) $(PTHREAD) -std="$(STD)"  -stdlib=libstdc++  $(OPT) -pipe `pkg-config --cflags glfw3 glew glm` -I/usr/include/SOIL
-LDFLAGS = $(PTHREAD) `pkg-config --libs glfw3 glew glm` -lSOIL # -export-dynamic
+CCFLAGS = $(WARN) $(PTHREAD) -std="$(STD)"  -stdlib=libstdc++  $(OPT) -pipe `pkg-config --cflags glfw3 glew glm` -I/usr/include/FreeImage
+LDFLAGS = $(PTHREAD) `pkg-config --libs glfw3 glew glm` -lfreeimage # -export-dynamic
 
 SRCS = $(wildcard *.cpp)
 OBJECTS = $(patsubst %.cpp, %.o, $(SRCS))

@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+ #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -7,7 +7,8 @@
 
 #include <thread>
 
-#include <SOIL/SOIL.h>
+// #include <SOIL/SOIL.h>
+#include <FreeImage.h>
 // #include <SOIL/stb_image_aug.h>
 
 #include <iostream>
@@ -61,7 +62,14 @@ float vertices[] = {
    0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
    0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
   -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f
+  -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+
+  -1.0f, -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // the plane
+   1.0f, -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+   1.0f,  1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+   1.0f,  1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+  -1.0f,  1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+  -1.0f, -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
 };
 
 GLuint elements[] = {
@@ -104,7 +112,7 @@ int main()
 
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "test1", nullptr, nullptr); // windowed
+  GLFWwindow *window = glfwCreateWindow(800, 600, "sibil GE", nullptr, nullptr); // windowed
   // GLFWwindow *window =
   //   glfwCreateWindow(800, 600, "test1", glfwGetPrimaryMonitor(), nullptr);
   if (!window) {
@@ -184,14 +192,21 @@ int main()
   glGenTextures(2, textures);
 
   int width, height;
-  unsigned char *image;
+  FREE_IMAGE_FORMAT format;
+  FIBITMAP *image;
+  char *pixels;
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textures[0]);
-  image = SOIL_load_image("./textures/kitten.png", &width, &height, 0, SOIL_LOAD_RGB);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-	       GL_UNSIGNED_BYTE, image);
-  SOIL_free_image_data(image);
+  format = FreeImage_GetFileType("./textures/Block5.tga", 0);
+  image = FreeImage_Load(format, "./textures/Block5.tga");
+  image = FreeImage_ConvertTo32Bits(image);
+  width = FreeImage_GetWidth(image);
+  height = FreeImage_GetHeight(image);
+  pixels = (char*) FreeImage_GetBits(image);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA,
+	       GL_UNSIGNED_BYTE, pixels);
+  FreeImage_Unload(image);
   glUniform1i(glGetUniformLocation(shaderProgram, "texKitten"), 0);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -201,10 +216,14 @@ int main()
 
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, textures[1]);
-  image = SOIL_load_image("./textures/dog.png", &width, &height, 0, SOIL_LOAD_RGB);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-	       GL_UNSIGNED_BYTE, image);
-  SOIL_free_image_data(image);
+  format = FreeImage_GetFileType("./textures/kitten_in_grass.png", 0);
+  image = FreeImage_Load(format, "./textures/kitten_in_grass.png");
+  image = FreeImage_ConvertTo32Bits(image);
+  width = FreeImage_GetWidth(image);
+  height = FreeImage_GetHeight(image);
+  pixels = (char*) FreeImage_GetBits(image);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA,
+	       GL_UNSIGNED_BYTE, pixels);
   glUniform1i(glGetUniformLocation(shaderProgram, "texDog"), 1);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -215,8 +234,8 @@ int main()
 
   GLint uniModel = glGetUniformLocation(shaderProgram, "model");
 
-  glm::mat4 view = glm::lookAt(glm::vec3(1.2f, 1.2f, 1.2f),
-			       glm::vec3(0.0f, 0.0f, 0.0f),
+  glm::mat4 view = glm::lookAt(glm::vec3(3.0f, 3.0f, 1.5f),
+			       glm::vec3(0.0f, 0.0f, -0.5f),
 			       glm::vec3(0.0f, 0.0f, 1.0f));
   GLint uniView = glGetUniformLocation(shaderProgram, "view");
   glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
@@ -251,11 +270,20 @@ int main()
 
   // int er = glGetError();printf("%d\n\t%s\n", er, glGetString(er));
 
+  glEnable(GL_DEPTH_TEST);
+
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // Main Loop
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    GLubyte r_background = 0x4c,
+	    g_background = 0x4c,
+	    b_background = 0x4c;
+    glClearColor(GLfloat(r_background) / 255.0f,
+		 GLfloat(g_background) / 255.0f,
+		 GLfloat(b_background) / 255.0f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
 
     auto t_now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
@@ -265,6 +293,15 @@ int main()
     model = glm::rotate(model, time * glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 
+    glDrawArrays(GL_TRIANGLES, 0, 36); // draw the upper cube
+    glDepthMask(GL_FALSE);
+    glDrawArrays(GL_TRIANGLES, 36, 6); // draw the plane
+    glDepthMask(GL_TRUE);
+
+    // Draw the reflection of the cube in the plane
+    model = glm::scale(glm::translate(model, glm::vec3(0 ,0 ,-1)),
+		       glm::vec3(1, -1, 1));
+    glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     // Commenting glfwSwapBuffers will leave DE in a frozen state
